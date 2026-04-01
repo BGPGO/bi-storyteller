@@ -30,7 +30,7 @@ export default function JobProgress({ jobId, reportName, onDone, onError }: Prop
           }
 
           if (s.status === 'failed') {
-            onError(s.error ?? 'Erro desconhecido no processamento');
+            onError(s.error || 'Erro desconhecido no processamento');
             return;
           }
         } catch (e) {

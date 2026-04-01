@@ -106,8 +106,9 @@ async def _run_full_export(job_id: str, url: str, report_name: str):
         logger.info("Full export job %s completed (%d bytes)", job_id, len(pdf_bytes))
 
     except Exception as e:
-        logger.exception("Full export job %s failed: %s", job_id, e)
-        job_manager.fail_job(job_id, str(e))
+        msg = repr(e) if not str(e) else str(e)
+        logger.exception("Full export job %s failed: %s", job_id, msg)
+        job_manager.fail_job(job_id, msg)
 
 
 @router.post("/full", summary="Inicia exportação completa do relatório (assíncrono)")

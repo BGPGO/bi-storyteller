@@ -75,13 +75,23 @@ async def capture_report_pages(
             }
         """)
 
-        # Detect page navigation tabs
-        page_tabs = await page.query_selector_all(
-            ".navigation .pages-container button, "
-            "[role='tab'], "
-            ".pageTabs button, "
-            "mat-tab-header .mat-tab-label"
-        )
+        # Detect page navigation tabs — try multiple Power BI selector patterns
+        PAGE_TAB_SELECTORS = [
+            ".navigation .pages-container button",
+            ".pageNavigation button",
+            ".pages .pageTab",
+            "[aria-label='Page navigation'] button",
+            "button[role='tab']",
+            ".tab-row button",
+            ".pages-container li",
+        ]
+        page_tabs = []
+        for selector in PAGE_TAB_SELECTORS:
+            found = await page.query_selector_all(selector)
+            if found:
+                page_tabs = found
+                logger.info("Found %d page tabs via selector: %s", len(found), selector)
+                break
 
         if not page_tabs:
             # Single-page report

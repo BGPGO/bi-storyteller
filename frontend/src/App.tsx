@@ -39,9 +39,8 @@ export default function App() {
   const handleExportPage = useCallback(async () => {
     const s = state as Extract<AppState, { view: 'viewer' }>;
 
-    setState({ view: 'capturing' });
-
     try {
+      // Capture FIRST — BI must be visible when the share dialog appears
       const screenshot = await captureCurrentTab();
       setState({ view: 'analyzing', mode: 'page' });
 
