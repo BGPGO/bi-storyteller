@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { ArrowLeft, Download, BookOpen, Monitor } from 'lucide-react';
+import { ArrowLeft, Download, Monitor } from 'lucide-react';
 
 interface Props {
   url: string;
   reportName: string;
   onBack: () => void;
   onExportPage: () => void;
-  onExportFull: () => void;
 }
 
-export default function BIViewer({ url, reportName, onBack, onExportPage, onExportFull }: Props) {
+export default function BIViewer({ url, reportName, onBack, onExportPage }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -76,16 +75,9 @@ export default function BIViewer({ url, reportName, onBack, onExportPage, onExpo
               }}>
                 <ExportOption
                   icon={<Monitor size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
-                  label="Página Atual"
-                  desc="Captura o que você está vendo agora — com seus filtros aplicados"
+                  label="Gerar Relatório com Storytelling"
+                  desc="Captura a tela atual com seus filtros e gera análise executiva por IA"
                   onClick={() => { setMenuOpen(false); onExportPage(); }}
-                />
-                <div style={{ height: 1, background: 'var(--border)' }} />
-                <ExportOption
-                  icon={<BookOpen size={16} style={{ color: 'rgba(167,139,250,0.9)', flexShrink: 0 }} />}
-                  label="Relatório Completo"
-                  desc="Captura todas as páginas do BI via Playwright (URL base)"
-                  onClick={() => { setMenuOpen(false); onExportFull(); }}
                 />
               </div>
             </>
