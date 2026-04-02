@@ -1,14 +1,13 @@
 """
 Playwright-based screenshot capture for Power BI public embed URLs.
 Navigates through all report pages and returns PNG screenshots.
+Playwright is imported lazily so the app starts without it installed.
 """
 
 import asyncio
 import logging
 from dataclasses import dataclass
 from typing import Callable, Optional
-
-from playwright.async_api import async_playwright, Page
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ class PageScreenshot:
     image_bytes: bytes
 
 
-async def _wait_for_render(page: Page):
+async def _wait_for_render(page) -> None:
     """Wait for Power BI visuals to fully render."""
     try:
         await page.wait_for_selector(
@@ -50,13 +49,20 @@ async def capture_report_pages(
     Returns:
         List of PageScreenshot ordered by page index
     """
+    try:
+        from playwright.async_api import async_playwright
+    except ImportError:
+        raise RuntimeError(
+            "Playwright is not installed. Multi-page export is unavailable."
+        )
+
     screenshots: list[PageScreenshot] = []
 
     async with async_playwright() as pw:
         browser = await pw.chromium.launch(headless=True)
         context = await browser.new_context(
             viewport=VIEWPORT,
-            device_scale_factor=2,  # Retina quality screenshots
+            device_scale_factor=2,
         )
         page = await context.new_page()
 
@@ -64,7 +70,6 @@ async def capture_report_pages(
         await page.goto(url, wait_until="networkidle", timeout=NAV_TIMEOUT_MS)
         await _wait_for_render(page)
 
-        # Hide Power BI toolbar/header for clean screenshots
         await page.evaluate("""
             () => {
                 const selectors = ['.logoBarWrapper', '.reportHeader', '.actionBarWrapper'];
@@ -75,7 +80,6 @@ async def capture_report_pages(
             }
         """)
 
-        # Detect page navigation tabs — try multiple Power BI selector patterns
         PAGE_TAB_SELECTORS = [
             ".navigation .pages-container button",
             ".pageNavigation button",
@@ -94,7 +98,6 @@ async def capture_report_pages(
                 break
 
         if not page_tabs:
-            # Single-page report
             logger.info("Single-page report detected")
             if on_progress:
                 on_progress(0, 1, "Página 1")
@@ -116,7 +119,6 @@ async def capture_report_pages(
                 await asyncio.sleep(3)
                 await _wait_for_render(page)
 
-                # Re-hide header (may reappear after navigation)
                 await page.evaluate("""
                     () => {
                         const selectors = ['.logoBarWrapper', '.reportHeader', '.actionBarWrapper'];
